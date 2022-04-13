@@ -38,7 +38,7 @@ void AMcWorld::BeginPlay()
 {
 	Super::BeginPlay();
 
-	const int numOfThreads = 4;
+	const int numOfThreads = 24;
 	GeneratorThreads.SetNum(numOfThreads);
 	for (int i = 0; i < numOfThreads; ++i)
 	{
@@ -48,7 +48,7 @@ void AMcWorld::BeginPlay()
 		GeneratorThreads[i]->ThisThread = T;
 	}
 
-	MeshGeneratorThreads.SetNum(4);
+	MeshGeneratorThreads.SetNum(numOfThreads);
 	for (auto& t : MeshGeneratorThreads)
 	{
 		t = new ChunkMeshGeneratorThread;
