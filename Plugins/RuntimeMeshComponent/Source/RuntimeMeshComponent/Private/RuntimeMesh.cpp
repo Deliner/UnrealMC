@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Chris Conway (Koderz). All Rights Reserved.
+// Copyright 2016-2020 TriAxis Games L.L.C. All Rights Reserved.
 
 #include "RuntimeMesh.h"
 #include "RuntimeMeshComponentPlugin.h"
@@ -24,7 +24,7 @@ DECLARE_CYCLE_STAT(TEXT("RuntimeMeshDelayedActions - Finalize Collision Cooked D
 
 
 #define RMC_LOG_VERBOSE(Format, ...) \
-	UE_LOG(RuntimeMeshLog2, Verbose, TEXT("[RM:%d Thread:%d]: " Format), GetMeshId(), FPlatformTLS::GetCurrentThreadId(), __VA_ARGS__);
+	UE_LOG(RuntimeMeshLog, Verbose, TEXT("[RM:%d Thread:%d]: " Format), GetMeshId(), FPlatformTLS::GetCurrentThreadId(), ##__VA_ARGS__);
 
 
 
@@ -156,6 +156,7 @@ void URuntimeMesh::Reset()
 {
 	RMC_LOG_VERBOSE("Reset called.");
 	GCAnchor.BeginNewState();
+	bQueuedForMeshUpdate.AtomicSet(false);
 
 	{
 		FWriteScopeLock Lock(MeshProviderLock);
@@ -236,6 +237,13 @@ FBoxSphereBounds URuntimeMesh::GetLocalBounds() const
 	}
 
 	return FBoxSphereBounds(FSphere(FVector::ZeroVector, 1.0f));
+}
+
+UBodySetup* URuntimeMesh::ForceCollisionUpdate(bool bForceCookNow)
+{
+	UpdateCollision(bForceCookNow);
+	bCollisionIsDirty = false;
+	return BodySetup;
 }
 
 // 
@@ -730,10 +738,10 @@ void URuntimeMesh::HandleUpdate()
 						SectionsToGetMesh.FindOrAdd(LODId).Add(INDEX_NONE);
 						continue;
 					}
-
-					if (LODs[LODId].Sections.Contains(SectionId))
+					
+					if (EnumHasAnyFlags(UpdateType, ESectionUpdateType::AllData))
 					{
-						if (EnumHasAnyFlags(UpdateType, ESectionUpdateType::AllData))
+						if (LODs[LODId].Sections.Contains(SectionId))
 						{
 							if (EnumHasAllFlags(UpdateType, ESectionUpdateType::Properties))
 							{
@@ -746,16 +754,16 @@ void URuntimeMesh::HandleUpdate()
 								SectionsToGetMesh.FindOrAdd(LODId).Add(SectionId);
 							}
 						}
-						else
+					}
+					else
+					{
+						if (EnumHasAllFlags(UpdateType, ESectionUpdateType::Remove))
 						{
-							if (EnumHasAllFlags(UpdateType, ESectionUpdateType::Remove))
-							{
-								RenderProxyRef->RemoveSection_GameThread(LODId, SectionId);
-							}
-							else if (EnumHasAllFlags(UpdateType, ESectionUpdateType::Clear))
-							{
-								RenderProxyRef->ClearSection_GameThread(LODId, SectionId);
-							}
+							RenderProxyRef->RemoveSection_GameThread(LODId, SectionId);
+						}
+						else if (EnumHasAllFlags(UpdateType, ESectionUpdateType::Clear))
+						{
+							RenderProxyRef->ClearSection_GameThread(LODId, SectionId);
 						}
 					}
 				}
@@ -869,7 +877,12 @@ void URuntimeMesh::HandleSingleSectionUpdate(const FRuntimeMeshProxyPtr& RenderP
 {
 	RMC_LOG_VERBOSE("HandleFullLODUpdate called: LOD:%d Section:%d", LODId, SectionId);
 
-	FRuntimeMeshSectionProperties Properties = LODs[LODId].Sections.FindChecked(SectionId);
+	
+	FRuntimeMeshSectionProperties Properties;
+	{
+		FScopeLock Lock(&SyncRoot);
+		Properties = LODs[LODId].Sections.FindChecked(SectionId);
+	}
 	FRuntimeMeshRenderableMeshData MeshData(
 		Properties.bUseHighPrecisionTangents,
 		Properties.bUseHighPrecisionTexCoords,
@@ -923,12 +936,19 @@ void URuntimeMesh::UpdateCollision(bool bForceCookNow)
 	SCOPE_CYCLE_COUNTER(STAT_RuntimeMesh_UpdateCollision);
 
 	check(IsInGameThread());
-
-	FReadScopeLock Lock(MeshProviderLock);
-	if (MeshProviderPtr)
+	bool HasCollisionSettings = false;
+	FRuntimeMeshCollisionSettings CollisionSettings;
 	{
-		FRuntimeMeshCollisionSettings CollisionSettings = MeshProviderPtr->GetCollisionSettings();
-
+		FReadScopeLock Lock(MeshProviderLock);
+		if (MeshProviderPtr)
+		{
+			CollisionSettings = MeshProviderPtr->GetCollisionSettings();
+			HasCollisionSettings = true;
+		}
+	}
+	
+	if (HasCollisionSettings)
+	{
 		UWorld* World = GetWorld();
 		const bool bShouldCookAsync = !bForceCookNow && World && World->IsGameWorld() && CollisionSettings.bUseAsyncCooking;
 
@@ -1078,7 +1098,14 @@ void URuntimeMesh::FinalizeNewCookedData()
 	SCOPE_CYCLE_COUNTER(STAT_RuntimeMesh_FinalizeCollisionCookedData);
 
 	check(IsInGameThread());
-
+	
+	{
+		FWriteScopeLock Lock(MeshProviderLock);
+		if (MeshProviderPtr)
+		{
+			MeshProviderPtr->CollisionUpdateCompleted();
+		}
+	}
 	// Alert all linked components so they can update their physics state.
 	DoForAllLinkedComponents([](URuntimeMeshComponent* Mesh)
 		{
