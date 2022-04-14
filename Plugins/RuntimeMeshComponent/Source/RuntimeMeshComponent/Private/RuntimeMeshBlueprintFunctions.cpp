@@ -69,7 +69,7 @@ void URuntimeMeshBlueprintFunctions::EmptyPositions(FRuntimeMeshVertexPositionSt
 void URuntimeMeshBlueprintFunctions::AddPosition(FRuntimeMeshVertexPositionStream& Stream, FRuntimeMeshVertexPositionStream& OutStream, FVector InPosition, int32& OutIndex)
 {
 	OutStream = Stream;
-	OutIndex = Stream.Add(InPosition);
+	OutIndex = Stream.Add(FVector3f(InPosition));
 }
 
 void URuntimeMeshBlueprintFunctions::AppendPositions(FRuntimeMeshVertexPositionStream& Stream, FRuntimeMeshVertexPositionStream& OutStream, const FRuntimeMeshVertexPositionStream& InOther)
@@ -81,19 +81,19 @@ void URuntimeMeshBlueprintFunctions::AppendPositions(FRuntimeMeshVertexPositionS
 void URuntimeMeshBlueprintFunctions::GetPosition(FRuntimeMeshVertexPositionStream& Stream, FRuntimeMeshVertexPositionStream& OutStream, int32 Index, FVector& OutPosition)
 {
 	OutStream = Stream;
-	OutPosition = Stream.GetPosition(Index);
+	OutPosition = FVector(Stream.GetPosition(Index));
 }
 
 void URuntimeMeshBlueprintFunctions::SetPosition(FRuntimeMeshVertexPositionStream& Stream, FRuntimeMeshVertexPositionStream& OutStream, int32 Index, FVector NewPosition)
 {
 	OutStream = Stream;
-	Stream.SetPosition(Index, NewPosition);
+	Stream.SetPosition(Index, FVector3f(NewPosition));
 }
 
 void URuntimeMeshBlueprintFunctions::GetBounds(FRuntimeMeshVertexPositionStream& Stream, FRuntimeMeshVertexPositionStream& OutStream, FBox& OutBounds)
 {
 	OutStream = Stream;
-	OutBounds = Stream.GetBounds();
+	OutBounds = FBox(Stream.GetBounds());
 }
 
 
@@ -120,13 +120,13 @@ void URuntimeMeshBlueprintFunctions::EmptyTangents(FRuntimeMeshVertexTangentStre
 void URuntimeMeshBlueprintFunctions::AddNormalAndTangent(FRuntimeMeshVertexTangentStream& Stream, FRuntimeMeshVertexTangentStream& OutStream, FVector InNormal, FVector InTangent, int32& OutIndex)
 {
 	OutStream = Stream;
-	OutIndex = Stream.Add(InNormal, InTangent);
+	OutIndex = Stream.Add(FVector3f(InNormal), FVector3f(InTangent));
 }
 
 void URuntimeMeshBlueprintFunctions::AddTangents(FRuntimeMeshVertexTangentStream& Stream, FRuntimeMeshVertexTangentStream& OutStream, FVector InTangentX, FVector InTangentY, FVector InTangentZ, int32& OutIndex)
 {
 	OutStream = Stream;
-	OutIndex = Stream.Add(InTangentX, InTangentY, InTangentZ);
+	OutIndex = Stream.Add(FVector3f(InTangentX), FVector3f(InTangentY), FVector3f(InTangentZ));
 }
 
 void URuntimeMeshBlueprintFunctions::AppendTangents(FRuntimeMeshVertexTangentStream& Stream, FRuntimeMeshVertexTangentStream& OutStream, const FRuntimeMeshVertexTangentStream& InOther)
@@ -138,37 +138,41 @@ void URuntimeMeshBlueprintFunctions::AppendTangents(FRuntimeMeshVertexTangentStr
 void URuntimeMeshBlueprintFunctions::GetNormal(FRuntimeMeshVertexTangentStream& Stream, FRuntimeMeshVertexTangentStream& OutStream, int32 Index, FVector& OutNormal)
 {
 	OutStream = Stream;
-	OutNormal = Stream.GetNormal(Index);
+	OutNormal = FVector(Stream.GetNormal(Index));
 }
 
 void URuntimeMeshBlueprintFunctions::SetNormal(FRuntimeMeshVertexTangentStream& Stream, FRuntimeMeshVertexTangentStream& OutStream, int32 Index, FVector NewNormal)
 {
 	OutStream = Stream;
-	Stream.SetNormal(Index, NewNormal);
+	Stream.SetNormal(Index, FVector3f(NewNormal));
 }
 
 void URuntimeMeshBlueprintFunctions::GetTangent(FRuntimeMeshVertexTangentStream& Stream, FRuntimeMeshVertexTangentStream& OutStream, int32 Index, FVector& OutTangent)
 {
 	OutStream = Stream;
-	OutTangent = Stream.GetTangent(Index);
+	OutTangent = FVector(Stream.GetTangent(Index));
 }
 
 void URuntimeMeshBlueprintFunctions::SetTangent(FRuntimeMeshVertexTangentStream& Stream, FRuntimeMeshVertexTangentStream& OutStream, int32 Index, FVector NewTangent)
 {
 	OutStream = Stream;
-	Stream.SetTangent(Index, NewTangent);
+	Stream.SetTangent(Index, FVector3f(NewTangent));
 }
 
 void URuntimeMeshBlueprintFunctions::GetTangents(FRuntimeMeshVertexTangentStream& Stream, FRuntimeMeshVertexTangentStream& OutStream, int32 Index, FVector& OutTangentX, FVector& OutTangentY, FVector& OutTangentZ)
 {
 	OutStream = Stream;
-	Stream.GetTangents(Index, OutTangentX, OutTangentY, OutTangentZ);
+	FVector3f tangentX, tangentY, tangentZ;
+	Stream.GetTangents(Index, tangentX, tangentY, tangentZ);
+	OutTangentX = FVector(tangentX);
+	OutTangentY = FVector(tangentY);
+	OutTangentZ = FVector(tangentZ);
 }
 
 void URuntimeMeshBlueprintFunctions::SetTangents(FRuntimeMeshVertexTangentStream& Stream, FRuntimeMeshVertexTangentStream& OutStream, int32 Index, FVector InTangentX, FVector InTangentY, FVector InTangentZ)
 {
 	OutStream = Stream;
-	Stream.SetTangents(Index, InTangentX, InTangentY, InTangentZ);
+	Stream.SetTangents(Index, FVector3f(InTangentX), FVector3f(InTangentY), FVector3f(InTangentZ));
 }
 
 
@@ -201,7 +205,7 @@ void URuntimeMeshBlueprintFunctions::EmptyTexCoords(FRuntimeMeshVertexTexCoordSt
 void URuntimeMeshBlueprintFunctions::AddTexCoord(FRuntimeMeshVertexTexCoordStream& Stream, FRuntimeMeshVertexTexCoordStream& OutStream, int32& OutIndex, FVector2D InTexCoord, int32 ChannelId)
 {
 	OutStream = Stream;
-	OutIndex = Stream.Add(InTexCoord, ChannelId);
+	OutIndex = Stream.Add(FVector2f(InTexCoord), ChannelId);
 }
 
 void URuntimeMeshBlueprintFunctions::AppendTexCoords(FRuntimeMeshVertexTexCoordStream& Stream, FRuntimeMeshVertexTexCoordStream& OutStream, const FRuntimeMeshVertexTexCoordStream& InOther)
@@ -213,13 +217,13 @@ void URuntimeMeshBlueprintFunctions::AppendTexCoords(FRuntimeMeshVertexTexCoordS
 void URuntimeMeshBlueprintFunctions::GetTexCoord(FRuntimeMeshVertexTexCoordStream& Stream, FRuntimeMeshVertexTexCoordStream& OutStream, int32 Index, int32 ChannelId, FVector2D& OutTexCoord)
 {
 	OutStream = Stream;
-	OutTexCoord = Stream.GetTexCoord(Index, ChannelId);
+	OutTexCoord = FVector2D(Stream.GetTexCoord(Index, ChannelId));
 }
 
 void URuntimeMeshBlueprintFunctions::SetTexCoord(FRuntimeMeshVertexTexCoordStream& Stream, FRuntimeMeshVertexTexCoordStream& OutStream, int32 Index, FVector2D NewTexCoord, int32 ChannelId /*= 0*/)
 {
 	OutStream = Stream;
-	Stream.SetTexCoord(Index, NewTexCoord, ChannelId);
+	Stream.SetTexCoord(Index, FVector2f(NewTexCoord), ChannelId);
 }
 
 
@@ -375,19 +379,19 @@ void URuntimeMeshBlueprintFunctions::EmptyCollisionVertices(FRuntimeMeshCollisio
 void URuntimeMeshBlueprintFunctions::AddCollisionVertex(FRuntimeMeshCollisionVertexStream& Stream, FRuntimeMeshCollisionVertexStream& OutStream, FVector InVertex, int32& OutIndex)
 {
 	OutStream = Stream;
-	OutIndex = Stream.Add(InVertex);
+	OutIndex = Stream.Add(FVector3f(InVertex));
 }
 
 void URuntimeMeshBlueprintFunctions::GetCollisionVertex(FRuntimeMeshCollisionVertexStream& Stream, FRuntimeMeshCollisionVertexStream& OutStream, int32 Index, FVector& OutVertex)
 {
 	OutStream = Stream;
-	OutVertex = Stream.GetPosition(Index);
+	OutVertex = FVector(Stream.GetPosition(Index));
 }
 
 void URuntimeMeshBlueprintFunctions::SetCollisionVertex(FRuntimeMeshCollisionVertexStream& Stream, FRuntimeMeshCollisionVertexStream& OutStream, int32 Index, FVector NewVertex)
 {
 	OutStream = Stream;
-	Stream.SetPosition(Index, NewVertex);
+	Stream.SetPosition(Index, FVector3f(NewVertex));
 }
 
 
@@ -453,19 +457,19 @@ void URuntimeMeshBlueprintFunctions::EmptyCollisionTexCoords(FRuntimeMeshVertexT
 void URuntimeMeshBlueprintFunctions::AddCollisionTexCoord(FRuntimeMeshVertexTexCoordStream& Stream, FRuntimeMeshVertexTexCoordStream& OutStream, FVector2D InTexCoord, int32& OutIndex)
 {
 	OutStream = Stream;
-	OutIndex = Stream.Add(InTexCoord);
+	OutIndex = Stream.Add(FVector2f(InTexCoord));
 }
 
 void URuntimeMeshBlueprintFunctions::GetCollisionTexCoord(FRuntimeMeshVertexTexCoordStream& Stream, FRuntimeMeshVertexTexCoordStream& OutStream, int32 Index, FVector2D& OutTexCoord, int32 ChannelId)
 {
 	OutStream = Stream;
-	OutTexCoord = Stream.GetTexCoord(Index, ChannelId);
+	OutTexCoord = FVector2D(Stream.GetTexCoord(Index, ChannelId));
 }
 
 void URuntimeMeshBlueprintFunctions::SetCollisionTexCoord(FRuntimeMeshVertexTexCoordStream& Stream, FRuntimeMeshVertexTexCoordStream& OutStream, int32 Index, FVector2D NewTexCoord, int32 ChannelId /*= 0*/)
 {
 	OutStream = Stream;
-	Stream.SetTexCoord(Index, NewTexCoord, ChannelId);
+	Stream.SetTexCoord(Index, FVector2f(NewTexCoord), ChannelId);
 }
 
 

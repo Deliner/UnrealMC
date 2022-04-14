@@ -17,8 +17,8 @@ public:
 	I_BlockItem(class B_Block* Block);
 	virtual I_Item::PostUseTask OnItemUse(const FHitResult& HitPointData, class AMcWorld* World) override;
 
-	virtual void GetCustomDisplayMesh(UObject* Base, TArray<FVector>& Verts, TArray<FVector2D>& UVs, 
-		TArray<int32>& Tris, TArray<FVector>& Normals, UMaterial*& Mat) override;
+	virtual void GetCustomDisplayMesh(UObject* Base, TArray<FVector3f>& Verts, TArray<FVector2f>& UVs, 
+		TArray<int32>& Tris, TArray<FVector3f>& Normals, UMaterial*& Mat) override;
 
 	virtual ~I_BlockItem() override;
 };

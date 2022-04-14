@@ -58,8 +58,8 @@ public:
 	int32 GetMaxStackCount();
 	virtual bool IsStackableWith(I_Item* OtherItem);
 	bool HasCustomDisplayMesh();
-	virtual void GetCustomDisplayMesh(UObject* Base, TArray<FVector>& VerticesOut, TArray<FVector2D>& UVsOut, 
-		TArray<int32>& TrianglesOut, TArray<FVector>& NormalsOut, class UMaterial*& MatOut);
+	virtual void GetCustomDisplayMesh(UObject* Base, TArray<FVector3f>& VerticesOut, TArray<FVector2f>& UVsOut, 
+		TArray<int32>& TrianglesOut, TArray<FVector3f>& NormalsOut, class UMaterial*& MatOut);
 
 	virtual bool operator==(const I_Item& I);
 	virtual bool operator!=(const I_Item& I);

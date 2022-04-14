@@ -20,5 +20,5 @@ public:
 	TArray<FVector2D> GetLeftUVs() override;
 	TArray<FVector2D> GetBackUVs() override;
 
-	TArray<FVector2D> GetAllUVs() override;
+	TArray<FVector2f> GetAllUVs() override;
 };

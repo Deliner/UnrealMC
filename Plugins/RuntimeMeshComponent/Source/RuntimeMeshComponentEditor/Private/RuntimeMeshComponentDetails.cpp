@@ -152,17 +152,17 @@ FReply FRuntimeMeshComponentDetails::ClickedOnConvertToStaticMesh()
 			}
 
 			// Create the package to save the static mesh
-			UPackage* Package = CreatePackage(nullptr, *UserPackageName);
+			UPackage* Package = CreatePackage(*UserPackageName);
 			check(Package);
 
 			// Create StaticMesh object
 			UStaticMesh* StaticMesh = NewObject<UStaticMesh>(Package, MeshName, RF_Public | RF_Standalone);
 			StaticMesh->InitResources();
 
-			StaticMesh->LightingGuid = FGuid::NewGuid();
+			StaticMesh->SetLightingGuid(FGuid::NewGuid());
 
 			// Copy the material slots
-			TArray<FStaticMaterial>& Materials = StaticMesh->StaticMaterials;
+			TArray<FStaticMaterial>& Materials = StaticMesh->GetStaticMaterials();
 			const auto RMCMaterialSlots = RuntimeMesh->GetMaterialSlots();
 			Materials.SetNum(RMCMaterialSlots.Num());
 			for (int32 Index = 0; Index < RMCMaterialSlots.Num(); Index++)
@@ -220,7 +220,7 @@ FReply FRuntimeMeshComponentDetails::ClickedOnConvertToStaticMesh()
 							int32 VertexIndex = MeshData.Triangles.GetVertexIndex(Index);
 							RawMesh.WedgeIndices.Add(VertexIndex + VertexBase);
 
-							FVector TangentX, TangentY, TangentZ;
+							FVector3f TangentX, TangentY, TangentZ;
 							MeshData.Tangents.GetTangents(VertexIndex, TangentX, TangentY, TangentZ);
 							RawMesh.WedgeTangentX.Add(TangentX);
 							RawMesh.WedgeTangentY.Add(TangentY);
@@ -228,7 +228,7 @@ FReply FRuntimeMeshComponentDetails::ClickedOnConvertToStaticMesh()
 
 							for (int32 UVIndex = 0; UVIndex < Section.NumTexCoords; UVIndex++)
 							{
-								RawMesh.WedgeTexCoords[UVIndex].Add(MeshData.TexCoords.GetTexCoord(VertexIndex, UVIndex));
+								RawMesh.WedgeTexCoords[UVIndex].Add((FVector2f)MeshData.TexCoords.GetTexCoord(VertexIndex, UVIndex));
 							}
 
 							RawMesh.WedgeColors.Add(MeshData.Colors.GetColor(VertexIndex));
@@ -259,34 +259,27 @@ FReply FRuntimeMeshComponentDetails::ClickedOnConvertToStaticMesh()
 				if (RawMesh.IsValid())
 				{
 					// Add source to new StaticMesh
-#if ENGINE_MAJOR_VERSION >= 4 && ENGINE_MINOR_VERSION >= 23
-					FStaticMeshSourceModel* SrcModel = new (StaticMesh->GetSourceModels()) FStaticMeshSourceModel();
-#else
-					FStaticMeshSourceModel* SrcModel = new (StaticMesh->SourceModels) FStaticMeshSourceModel();
-#endif
-					SrcModel->BuildSettings.bRecomputeNormals = false;
-					SrcModel->BuildSettings.bRecomputeTangents = false;
-					SrcModel->BuildSettings.bRemoveDegenerates = true;
-					SrcModel->BuildSettings.bUseHighPrecisionTangentBasis = bUseHighPrecisionTangents;
-					SrcModel->BuildSettings.bUseFullPrecisionUVs = bUseFullPrecisionUVs;
-					SrcModel->BuildSettings.bGenerateLightmapUVs = true;
-					SrcModel->BuildSettings.SrcLightmapIndex = 0;
-					SrcModel->BuildSettings.DstLightmapIndex = 1;
-					SrcModel->RawMeshBulkData->SaveRawMesh(RawMesh);
+					FStaticMeshSourceModel& SrcModel = StaticMesh->AddSourceModel();
+					SrcModel.BuildSettings.bRecomputeNormals = false;
+					SrcModel.BuildSettings.bRecomputeTangents = false;
+					SrcModel.BuildSettings.bRemoveDegenerates = true;
+					SrcModel.BuildSettings.bUseHighPrecisionTangentBasis = bUseHighPrecisionTangents;
+					SrcModel.BuildSettings.bUseFullPrecisionUVs = bUseFullPrecisionUVs;
+					SrcModel.BuildSettings.bGenerateLightmapUVs = true;
+					SrcModel.BuildSettings.SrcLightmapIndex = 0;
+					SrcModel.BuildSettings.DstLightmapIndex = 1;
+					SrcModel.RawMeshBulkData->SaveRawMesh(RawMesh);
 
-					SrcModel->ScreenSize = LOD.Properties.ScreenSize;
+					SrcModel.ScreenSize = LOD.Properties.ScreenSize;
 
 					// Set the materials used for this static mesh
-					int32 NumMaterials = StaticMesh->StaticMaterials.Num();
+					int32 NumMaterials = StaticMesh->GetStaticMaterials().Num();
 
 					// Set up the SectionInfoMap to enable collision
 					for (int32 SectionIdx = 0; SectionIdx < NumMaterials; SectionIdx++)
 					{
-#if ENGINE_MAJOR_VERSION >= 4 && ENGINE_MINOR_VERSION >= 23
+
 						FMeshSectionInfoMap& SectionInfoMap = StaticMesh->GetSectionInfoMap();
-#else
-						FMeshSectionInfoMap& SectionInfoMap = StaticMesh->SectionInfoMap;
-#endif
 
 						FMeshSectionInfo Info = SectionInfoMap.Get(LODIndex, SectionIdx);
 						Info.MaterialIndex = SectionIdx;
@@ -297,11 +290,11 @@ FReply FRuntimeMeshComponentDetails::ClickedOnConvertToStaticMesh()
 				}
 			}
 
-			StaticMesh->StaticMaterials = Materials;
+			StaticMesh->SetStaticMaterials(Materials);
 
 			// Configure body setup for working collision.
 			StaticMesh->CreateBodySetup();
-			StaticMesh->BodySetup->CollisionTraceFlag = CTF_UseComplexAsSimple;
+			StaticMesh->GetBodySetup()->CollisionTraceFlag = CTF_UseComplexAsSimple;
 
 			// Build mesh from source
 			StaticMesh->Build(false);

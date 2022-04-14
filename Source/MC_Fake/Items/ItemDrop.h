@@ -48,7 +48,7 @@ public:
 
 	AItemDrop();
 	virtual void Tick(float DeltaTime) override;
-	void SetMesh(const TArray<FVector>& Verts, const TArray<int32>& Tris, const TArray<FVector2D>& UVs, const TArray<FVector>& Normals, UMaterialInstanceDynamic* Material);
+	void SetMesh(const TArray<FVector3f>& Verts, const TArray<int32>& Tris, const TArray<FVector2f>& UVs, const TArray<FVector3f>& Normals, UMaterialInstanceDynamic* Material);
 	void SetItemStack(FItemStack NewItemStack);
 	void UpdateItemCount(int32 NewCount, USceneComponent* TargetLocation = nullptr, FVector Offset = FVector::ZeroVector);
 	void IncreaseItemCount(int32 AdditionalCount);

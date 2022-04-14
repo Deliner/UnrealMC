@@ -75,7 +75,7 @@ TArray<FVector2D> B_Grass::GetBackUVs()
 	};
 }
 
-TArray<FVector2D> B_Grass::GetAllUVs()
+TArray<FVector2f> B_Grass::GetAllUVs()
 {
 	return {
 		{0, -0.5},

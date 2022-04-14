@@ -36,10 +36,10 @@ void ABlockBreaking::InitWithBlock(B_Block* NewBlock)
 			MeshProvider->RemoveSection(0, section);
 	}
 	
-	TArray<FVector> Vertices(NewBlock->GetAllVertices(0.f, 0.f, 0.f));
-	TArray<int32> Triangles(NewBlock->GetAllTrianglesFrom());
-	TArray<FVector2D> UVs(NewBlock->GetAllUVs());
-	TArray<FVector> Normals(NewBlock->GetAllNormals());
+	TArray Vertices(NewBlock->GetAllVertices(0.f, 0.f, 0.f));
+	TArray Triangles(NewBlock->GetAllTrianglesFrom());
+	TArray UVs(NewBlock->GetAllUVs());
+	TArray Normals(NewBlock->GetAllNormals());
 
 	MeshProvider->SetupMaterialSlot(0, FName(TEXT("")), NewBlock->GetMaterial(this));
 	MeshProvider->CreateSectionFromComponents(0, 0, 0, Vertices, Triangles, Normals, UVs, TArray<FColor>(), TArray<FRuntimeMeshTangent>(), ERuntimeMeshUpdateFrequency::Infrequent, false);

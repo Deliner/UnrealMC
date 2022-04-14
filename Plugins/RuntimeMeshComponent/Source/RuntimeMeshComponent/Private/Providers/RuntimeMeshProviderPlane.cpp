@@ -63,10 +63,10 @@ bool URuntimeMeshProviderPlane::GetSectionMeshForLOD(int32 LODIndex, int32 Secti
 		for (int32 ABIndex = 0; ABIndex < NumVertsAB; ABIndex++)
 		{
 			FVector Location = LocationA + ABDirection * ABIndex + ACDirection * ACIndex;
-			FVector2D TexCoord = FVector2D((float)ABIndex / (float)(NumVertsAB - 1), (float)ACIndex / (float)(NumVertsAC - 1));
+			FVector2f TexCoord = FVector2f((float)ABIndex / (float)(NumVertsAB - 1), (float)ACIndex / (float)(NumVertsAC - 1));
 			//UE_LOG(LogTemp, Log, TEXT("TexCoord for vertex %i:%i : %s"), ABIndex, ACIndex, *TexCoord.ToString());
-			MeshData.Positions.Add(Location);
-			MeshData.Tangents.Add(Normal, Tangent);
+			MeshData.Positions.Add(FVector3f(Location));
+			MeshData.Tangents.Add(FVector3f(Normal), FVector3f(Tangent));
 			MeshData.Colors.Add(Color);
 			MeshData.TexCoords.Add(TexCoord);
 			if (ABIndex != NumVertsAB - 1 && ACIndex != NumVertsAC - 1)

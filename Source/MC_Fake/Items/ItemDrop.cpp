@@ -120,7 +120,7 @@ void AItemDrop::Tick(float DeltaTime)
 		Destroy();
 }
 
-void AItemDrop::SetMesh(const TArray<FVector>& Verts, const TArray<int32>& Tris, const TArray<FVector2D>& UVs, const TArray<FVector>& Normals, UMaterialInstanceDynamic* Material)
+void AItemDrop::SetMesh(const TArray<FVector3f>& Verts, const TArray<int32>& Tris, const TArray<FVector2f>& UVs, const TArray<FVector3f>& Normals, UMaterialInstanceDynamic* Material)
 {
 	MeshProvider->SetupMaterialSlot(0, FName(TEXT("Item Drop Material Slot")), Material);
 	MeshProvider->CreateSectionFromComponents(

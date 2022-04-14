@@ -29,10 +29,10 @@ void UItemMeshComponent::OnItemChange()
 
 		if (bCustomMesh)
 		{
-			TArray<FVector> Verts;
-			TArray<FVector2D> UVs;
+			TArray<FVector3f> Verts;
+			TArray<FVector2f> UVs;
 			TArray<int32> Tris;
-			TArray<FVector> Normals;
+			TArray<FVector3f> Normals;
 			UMaterial* Mat;
 			(*ItemPointer)->ItemS->GetCustomDisplayMesh(CustomMesh, Verts, UVs, Tris, Normals, Mat);
 			MeshProvider->SetupMaterialSlot(0, TEXT("Custom Mesh Material Slot"), Mat);

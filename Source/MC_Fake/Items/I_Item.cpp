@@ -61,7 +61,7 @@ bool I_Item::HasCustomDisplayMesh()
 	return bCustomDisplayMesh;
 }
 
-void I_Item::GetCustomDisplayMesh(UObject* Base, TArray<FVector>& VerticesOut, TArray<FVector2D>& UVsOut, TArray<int32>& TrianglesOut, TArray<FVector>& NormalsOut, UMaterial *& MatOut)
+void I_Item::GetCustomDisplayMesh(UObject* Base, TArray<FVector3f>& VerticesOut, TArray<FVector2f>& UVsOut, TArray<int32>& TrianglesOut, TArray<FVector3f>& NormalsOut, UMaterial *& MatOut)
 {
 }
 

@@ -399,7 +399,7 @@ TArray<FVector> B_Block::GetBackNormals()
 	};
 }
 
-TArray<FVector> B_Block::GetAllVertices(float x, float y, float z)
+TArray<FVector3f> B_Block::GetAllVertices(float x, float y, float z)
 {
 	return {
 		{x, y, z + 100},
@@ -429,7 +429,7 @@ TArray<FVector> B_Block::GetAllVertices(float x, float y, float z)
 	};
 }
 
-TArray<FVector2D> B_Block::GetAllUVs()
+TArray<FVector2f> B_Block::GetAllUVs()
 {
 	return {
 		{0, 0},
@@ -464,7 +464,7 @@ TArray<FVector2D> B_Block::GetAllUVs()
 	};
 }
 
-TArray<FVector> B_Block::GetAllNormals()
+TArray<FVector3f> B_Block::GetAllNormals()
 {
 	return {
 		{0, 0, 1}, {0, 0, 1}, {0, 0, 1}, {0, 0, 1},

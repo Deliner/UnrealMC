@@ -165,7 +165,7 @@ public:
 	 * @param x, y, z All coordinates will be offset from this point
 	 */
 	virtual TArray<FVector> GetBackVertices(float x, float y, float z);
-	virtual TArray<FVector> GetAllVertices(float x, float y, float z);
+	virtual TArray<FVector3f> GetAllVertices(float x, float y, float z);
 
 	//The following function return an array of indices for the triangle.
 	//3 consecutive indices form a triangle.
@@ -185,7 +185,7 @@ public:
 	virtual TArray<FVector2D> GetLeftUVs();
 	virtual TArray<FVector2D> GetFrontUVs();
 	virtual TArray<FVector2D> GetBackUVs();
-	virtual TArray<FVector2D> GetAllUVs();
+	virtual TArray<FVector2f> GetAllUVs();
 
 	//Normal vector of each vertex
 	virtual TArray<FVector> GetTopNormals();
@@ -194,6 +194,6 @@ public:
 	virtual TArray<FVector> GetLeftNormals();
 	virtual TArray<FVector> GetFrontNormals();
 	virtual TArray<FVector> GetBackNormals();
-	virtual TArray<FVector> GetAllNormals();
+	virtual TArray<FVector3f> GetAllNormals();
 
 };

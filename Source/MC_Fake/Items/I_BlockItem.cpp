@@ -42,7 +42,7 @@ I_Item::PostUseTask I_BlockItem::OnItemUse(const FHitResult& HitPointData, AMcWo
 	 }
 }
 
-void I_BlockItem::GetCustomDisplayMesh(UObject* Base, TArray<FVector>& Verts, TArray<FVector2D>& UVs, TArray<int32>& Tris, TArray<FVector>& Normals, UMaterial*& Mat)
+void I_BlockItem::GetCustomDisplayMesh(UObject* Base, TArray<FVector3f>& Verts, TArray<FVector2f>& UVs, TArray<int32>& Tris, TArray<FVector3f>& Normals, UMaterial*& Mat)
 {
 	Verts = BlockRef->GetAllVertices(0, 0, 0);
 	UVs = BlockRef->GetAllUVs();

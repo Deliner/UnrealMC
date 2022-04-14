@@ -70,7 +70,7 @@ TArray<FVector2D> B_Log::GetBackUVs()
 	};
 }
 
-TArray<FVector2D> B_Log::GetAllUVs()
+TArray<FVector2f> B_Log::GetAllUVs()
 {
 	return {
 		{0.5, 0},

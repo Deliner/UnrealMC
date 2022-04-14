@@ -23,3 +23,10 @@
 [RumbleballTheReal](https://github.com/RumbleballTheReal)
 [SiggiG](https://github.com/SiggiG)
 [timdecode](https://github.com/timdecode)
+
+### UE5 Adaptation
+[EddieAtaberk](https://github.com/eddieataberk)
+### UE5 Preview 1 (LWC Double Precision) Changes
+[Darcul](https://github.com/Darcul)
+[connorjak](https://github.com/connorjak)
+[sfla](https://github.com/sfla)

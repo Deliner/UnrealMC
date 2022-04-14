@@ -40,12 +40,12 @@ int32 URuntimeMeshStaticMeshConverter::CopyVertexOrGetIndex(const FStaticMeshLOD
 		{
 			for (int32 TexIndex = 0; TexIndex < NumTexCoords; TexIndex++)
 			{
-				NewMeshData.TexCoords.Add(LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(VertexIndex, TexIndex), TexIndex);
+				NewMeshData.TexCoords.Add((FVector2f)LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(VertexIndex, TexIndex), TexIndex);
 			}
 		}
 		else
 		{
-			NewMeshData.TexCoords.Add(FVector2D::ZeroVector);
+			NewMeshData.TexCoords.Add(FVector2f::ZeroVector);
 		}		
 
 		// Copy Color
@@ -83,7 +83,7 @@ int32 URuntimeMeshStaticMeshConverter::CopyVertexOrGetIndex(const FStaticMeshLOD
 		// Copy UV's
 		for (int32 UVIndex = 0; UVIndex < NumUVChannels; UVIndex++)
 		{
-			NewMeshData.TexCoords.Add(UVIndex, LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(VertexIndex, UVIndex));
+			NewMeshData.TexCoords.Add(UVIndex, FVector2D(LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(VertexIndex, UVIndex)));
 		}
 		
 		MeshToSectionVertexMap.Add(VertexIndex, NewVertexIndex);
@@ -94,24 +94,24 @@ int32 URuntimeMeshStaticMeshConverter::CopyVertexOrGetIndex(const FStaticMeshLOD
 bool URuntimeMeshStaticMeshConverter::CopyStaticMeshSectionToRenderableMeshData(UStaticMesh* StaticMesh, int32 LODIndex, int32 SectionId, FRuntimeMeshRenderableMeshData& OutMeshData)
 {
 	// Check valid static mesh
-	if (StaticMesh == nullptr || StaticMesh->IsPendingKill())
+	if (!IsValid(StaticMesh))
 	{
 		return false;
 	}
 
 	// Check mesh data is accessible
-	if (!((GIsEditor || StaticMesh->bAllowCPUAccess) && StaticMesh->RenderData != nullptr))
+	if (!((GIsEditor || StaticMesh->bAllowCPUAccess) && StaticMesh->GetRenderData() != nullptr))
 	{
 		return false;
 	}
 
 	// Check valid LOD
-	if (!StaticMesh->RenderData->LODResources.IsValidIndex(LODIndex))
+	if (!StaticMesh->GetRenderData()->LODResources.IsValidIndex(LODIndex))
 	{
 		return false;
 	}
 
-	const FStaticMeshLODResources& LOD = StaticMesh->RenderData->LODResources[LODIndex];
+	const FStaticMeshLODResources& LOD = StaticMesh->GetRenderData()->LODResources[LODIndex];
 
 	// Check valid section
 	if (!LOD.Sections.IsValidIndex(SectionId))
@@ -147,25 +147,25 @@ bool URuntimeMeshStaticMeshConverter::CopyStaticMeshSectionToRenderableMeshData(
 	// Lets copy the adjacency information too for tessellation 
 	// At this point all vertices should be copied so it should work to just copy/convert the indices.
 
-#if ENGINE_MAJOR_VERSION >= 4 && ENGINE_MINOR_VERSION >= 23
-	const auto& LODAdjacencyIndexBuffer = LOD.AdditionalIndexBuffers->AdjacencyIndexBuffer;
-#else
-	const auto& LODAdjacencyIndexBuffer = LOD.AdjacencyIndexBuffer;
-#endif
-
-	if (LOD.bHasAdjacencyInfo && LODAdjacencyIndexBuffer.GetNumIndices() > 0)
-	{
-		FIndexArrayView AdjacencyIndices = LODAdjacencyIndexBuffer.GetArrayView();
-
-		// We multiply these by 4 as the adjacency data is 12 indices per triangle instead of the normal 3
-		uint32 StartIndex = Section.FirstIndex * 4;
-		uint32 NumIndices = Section.NumTriangles * 3 * 4;
-
-		for (uint32 Index = 0; Index < NumIndices; Index++)
-		{
-			OutMeshData.AdjacencyTriangles.Add(MeshToSectionVertMap[AdjacencyIndices[StartIndex + Index]]);
-		}
-	}
+//#if ENGINE_MAJOR_VERSION <= 4 && ENGINE_MINOR_VERSION <= 22
+//	const auto& LODAdjacencyIndexBuffer = LOD.AdjacencyIndexBuffer;
+//#else
+//	const auto& LODAdjacencyIndexBuffer = LOD.AdditionalIndexBuffers->AdjacencyIndexBuffer;
+//#endif
+//
+//	if (LOD.bHasAdjacencyInfo && LODAdjacencyIndexBuffer.GetNumIndices() > 0)
+//	{
+//		FIndexArrayView AdjacencyIndices = LODAdjacencyIndexBuffer.GetArrayView();
+//
+//		// We multiply these by 4 as the adjacency data is 12 indices per triangle instead of the normal 3
+//		uint32 StartIndex = Section.FirstIndex * 4;
+//		uint32 NumIndices = Section.NumTriangles * 3 * 4;
+//
+//		for (uint32 Index = 0; Index < NumIndices; Index++)
+//		{
+//			OutMeshData.AdjacencyTriangles.Add(MeshToSectionVertMap[AdjacencyIndices[StartIndex + Index]]);
+//		}
+//	}
 
 	return true;
 }
@@ -173,19 +173,19 @@ bool URuntimeMeshStaticMeshConverter::CopyStaticMeshSectionToRenderableMeshData(
 bool URuntimeMeshStaticMeshConverter::CopyStaticMeshCollisionToCollisionSettings(UStaticMesh* StaticMesh, FRuntimeMeshCollisionSettings& OutCollisionSettings)
 {
 	// Check valid static mesh
-	if (StaticMesh == nullptr || StaticMesh->IsPendingKill())
+	if (!IsValid(StaticMesh))
 	{
 		return false;
 	}
 
 	// Check mesh data is accessible
-	if (!((GIsEditor || StaticMesh->bAllowCPUAccess) && StaticMesh->RenderData != nullptr))
+	if (!((GIsEditor || StaticMesh->bAllowCPUAccess) && StaticMesh->GetRenderData() != nullptr))
 	{
 		return false;
 	}
 
 	// Do we have a body setup to copy?
-	if (StaticMesh->BodySetup == nullptr)
+	if (StaticMesh->GetBodySetup() == nullptr)
 	{
 		return false;
 	}
@@ -193,7 +193,7 @@ bool URuntimeMeshStaticMeshConverter::CopyStaticMeshCollisionToCollisionSettings
 	bool bHadSimple = false;
 
 	// Copy convex elements
-	const auto& SourceConvexElems = StaticMesh->BodySetup->AggGeom.ConvexElems;
+	const auto& SourceConvexElems = StaticMesh->GetBodySetup()->AggGeom.ConvexElems;
 	for (int32 ConvexIndex = 0; ConvexIndex < SourceConvexElems.Num(); ConvexIndex++)
 	{
 		bHadSimple = true;
@@ -203,7 +203,7 @@ bool URuntimeMeshStaticMeshConverter::CopyStaticMeshCollisionToCollisionSettings
 	}
 
 	// Copy boxes
-	const auto& SourceBoxes = StaticMesh->BodySetup->AggGeom.BoxElems;
+	const auto& SourceBoxes = StaticMesh->GetBodySetup()->AggGeom.BoxElems;
 	for (int32 BoxIndex = 0; BoxIndex < SourceBoxes.Num(); BoxIndex++)
 	{
 		bHadSimple = true;
@@ -216,7 +216,7 @@ bool URuntimeMeshStaticMeshConverter::CopyStaticMeshCollisionToCollisionSettings
 	}
 
 	// Copy spheres
-	const auto& SourceSpheres = StaticMesh->BodySetup->AggGeom.SphereElems;
+	const auto& SourceSpheres = StaticMesh->GetBodySetup()->AggGeom.SphereElems;
 	for (int32 SphereIndex = 0; SphereIndex < SourceSpheres.Num(); SphereIndex++)
 	{
 		bHadSimple = true;
@@ -226,7 +226,7 @@ bool URuntimeMeshStaticMeshConverter::CopyStaticMeshCollisionToCollisionSettings
 	}
 
 	// Copy capsules
-	const auto& SourceCapsules = StaticMesh->BodySetup->AggGeom.SphylElems;
+	const auto& SourceCapsules = StaticMesh->GetBodySetup()->AggGeom.SphylElems;
 	for (int32 CapsuleIndex = 0; CapsuleIndex < SourceCapsules.Num(); CapsuleIndex++)
 	{
 		bHadSimple = true;
@@ -248,24 +248,24 @@ bool URuntimeMeshStaticMeshConverter::CopyStaticMeshCollisionToCollisionSettings
 bool URuntimeMeshStaticMeshConverter::CopyStaticMeshLODToCollisionData(UStaticMesh* StaticMesh, int32 LODIndex, FRuntimeMeshCollisionData& OutCollisionData)
 {
 	// Check valid static mesh
-	if (StaticMesh == nullptr || StaticMesh->IsPendingKill())
+	if (!IsValid(StaticMesh))
 	{
 		return false;
 	}
 
 	// Check mesh data is accessible
-	if (!((GIsEditor || StaticMesh->bAllowCPUAccess) && StaticMesh->RenderData != nullptr))
+	if (!((GIsEditor || StaticMesh->bAllowCPUAccess) && StaticMesh->GetRenderData() != nullptr))
 	{
 		return false;
 	}
 
 	// Check valid LOD
-	if (!StaticMesh->RenderData->LODResources.IsValidIndex(LODIndex))
+	if (!StaticMesh->GetRenderData()->LODResources.IsValidIndex(LODIndex))
 	{
 		return false;
 	}
 
-	const FStaticMeshLODResources& LOD = StaticMesh->RenderData->LODResources[LODIndex];
+	const FStaticMeshLODResources& LOD = StaticMesh->GetRenderData()->LODResources[LODIndex];
 
 	uint32 NumUVChannels = LOD.VertexBuffers.StaticMeshVertexBuffer.GetNumTexCoords();
 	
@@ -330,7 +330,7 @@ bool URuntimeMeshStaticMeshConverter::CopyStaticMeshToRuntimeMesh(UStaticMesh* S
 
 
 	// Check valid static mesh
-	if (StaticMesh == nullptr || StaticMesh->IsPendingKill())
+	if (!IsValid(StaticMesh))
 	{
 		RMC_LOG_VERBOSE(RuntimeMeshComponent->GetRuntimeMeshId(), "Unable to convert StaticMesh to RuntimeMesh. Invalid source StaticMesh.");
 		StaticProvider->ConfigureLODs({ FRuntimeMeshLODProperties() });
@@ -340,7 +340,7 @@ bool URuntimeMeshStaticMeshConverter::CopyStaticMeshToRuntimeMesh(UStaticMesh* S
 	}
 
 	// Check mesh data is accessible
-	if (!((GIsEditor || StaticMesh->bAllowCPUAccess) && StaticMesh->RenderData != nullptr))
+	if (!((GIsEditor || StaticMesh->bAllowCPUAccess) && StaticMesh->GetRenderData() != nullptr))
 	{
 		RMC_LOG_VERBOSE(RuntimeMeshComponent->GetRuntimeMeshId(), "Unable to convert StaticMesh to RuntimeMesh. Invalid source StaticMesh.");
 		StaticProvider->ConfigureLODs({ FRuntimeMeshLODProperties() });
@@ -350,20 +350,20 @@ bool URuntimeMeshStaticMeshConverter::CopyStaticMeshToRuntimeMesh(UStaticMesh* S
 	}
 
 	// Copy materials
-	const TArray<FStaticMaterial>& MaterialSlots = StaticMesh->StaticMaterials;
+	const TArray<FStaticMaterial>& MaterialSlots = StaticMesh->GetStaticMaterials();
 	for (int32 SlotIndex = 0; SlotIndex < MaterialSlots.Num(); SlotIndex++)
 	{
 		StaticProvider->SetupMaterialSlot(SlotIndex, MaterialSlots[SlotIndex].MaterialSlotName, MaterialSlots[SlotIndex].MaterialInterface);
 	}
 
-	const auto& LODResources = StaticMesh->RenderData->LODResources;
+	const auto& LODResources = StaticMesh->GetRenderData()->LODResources;
 
 	// Setup LODs
 	TArray<FRuntimeMeshLODProperties> LODs;
 	for (int32 LODIndex = 0; LODIndex < LODResources.Num() && LODIndex <= MaxLODToCopy; LODIndex++)
 	{
 		FRuntimeMeshLODProperties LODProperties;
-		LODProperties.ScreenSize = StaticMesh->RenderData->ScreenSize[LODIndex].Default;
+		LODProperties.ScreenSize = StaticMesh->GetRenderData()->ScreenSize[LODIndex].Default;
 
 		LODs.Add(LODProperties);
 	}
